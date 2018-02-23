@@ -1,8 +1,14 @@
+// .h file
+// James Schnebly
+// 2/22/18
+// CS457 PA1
+
 #include <iostream>
 #include <fstream>
 
 using namespace std;
 
+// class to hold values for tables that are created
 class Table
 {
 public:

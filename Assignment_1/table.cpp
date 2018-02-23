@@ -1,3 +1,8 @@
+// C++ file
+// James Schnebly
+// 2/22/18
+// CS457 PA1
+
 #include <iostream>
 #include <fstream>
 #include "table.h"
@@ -33,6 +38,7 @@ string Table::getDBA()
 	return DBA;
 }
 
+// print table function that outputs attributes in a prettier format (pipe seperated)
 void Table::printTable()
 {
 	string line  = Tparameters;

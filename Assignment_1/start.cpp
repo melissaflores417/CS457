@@ -1,5 +1,7 @@
 // C++ file
 // James Schnebly
+// 2/22/18
+// CS457 PA1
 
 #include <cstdlib>
 #include <iostream>
@@ -10,6 +12,8 @@
 
 
 using namespace std;
+
+void sanitize(string& input);
 
 int main(int argc, char const *argv[])
 {
@@ -27,12 +31,17 @@ int main(int argc, char const *argv[])
 		cout << "> ";
 		getline(cin, line);
 
+		// get rid of \r's
+		sanitize(line);
 
-		if(line.find(';') == -1 && line.find('.') != 0)
+
+		// check if the command was given properly
+		if(line.find(';') == -1 && line.find('.') != 0 && line != "")
 		{
 			cout << "Must end command with ';'." << endl;
 		}
 
+		// create database handler that creates a folder with correct name
 		else if(line.find("CREATE DATABASE") != -1)
 		{	
 			name = line.substr(16, line.length() - 17);
@@ -44,6 +53,7 @@ int main(int argc, char const *argv[])
 			
 		}
 
+		// delete database handler that removes folder
 		else if(line.find("DROP DATABASE") != -1)
 		{
 			name = line.substr(14, line.length() - 15);
@@ -54,13 +64,16 @@ int main(int argc, char const *argv[])
 			}
 		}
 
+		// create table handler
+		// this function creates a Table instance and assigns the name
+		// parameters (attributes), and database associated with it
 		else if(line.find("CREATE TABLE") != -1)
 		{
 			name = line.substr(13, line.find("(") - 14);
 
 			for(int i = 0; i < tableVect.size(); i++)
 			{
-				if(name == tableVect[i].getName())
+				if(name == tableVect[i].getName() && db == tableVect[i].getDBA())
 				{
 					cout << "-- Failed to create table " + name + " becuase it already exists." << endl;
 					errorFlag = 1;
@@ -70,14 +83,11 @@ int main(int argc, char const *argv[])
 
 			if(errorFlag == 0)
 			{
-				cout << "check 1" << endl;
 				if(db != "")
 				{
-					cout << "check 2" << endl;
 					errorNum = system(("touch " + db + "/" + name + ".txt").c_str());
 					if(errorNum == 0)
 					{
-						cout << "check 3" << endl;
 						attrs = line.substr(line.find("(") + 1, line.length() - 3 - line.find("("));
 						Table* pushT = new Table(name, attrs, db);
 						tableVect.push_back(*pushT);
@@ -93,6 +103,7 @@ int main(int argc, char const *argv[])
 
 		}
 
+		// Drop table handler that deletes table from associated database
 		else if(line.find("DROP TABLE") != -1)
 		{
 			int i;
@@ -104,9 +115,7 @@ int main(int argc, char const *argv[])
 				{
 					if (name == tableVect[i].getName() && db == tableVect[i].getDBA())
 					{
-						cout << tableVect.size() << endl;
 						tableVect.erase(tableVect.begin() + i);
-						cout << tableVect.size() << endl;
 					}
 
 				}
@@ -114,6 +123,7 @@ int main(int argc, char const *argv[])
 			}
 		}
 
+		// Use handler that changes functioning database
 		else if(line.find("USE") != -1)
 		{
 			db = line.substr(4, line.length() - 5);
@@ -125,6 +135,7 @@ int main(int argc, char const *argv[])
 
 		}
 
+		// Select Query handler that returns the empty table
 		else if (line.find("SELECT *") != -1)
 		{
 			name = line.substr(14, line.length() - 15);
@@ -132,27 +143,19 @@ int main(int argc, char const *argv[])
 
 			for (i = 0; i < tableVect.size(); i++)
 			{
-				if(name == tableVect[i].getName())
+				if(name == tableVect[i].getName() && db == tableVect[i].getDBA())
 				{
-					if(db == tableVect[i].getDBA())
-					{
-						tableVect[i].printTable();
-						break;
-					}
-					else
-					{
-						cout << "-- Table not located in this database." << endl;
-					}
+					tableVect[i].printTable();
+					break;
 				}
 			}
-
-			if (i == tableVect.size())
+			if(i == tableVect.size())
 			{
-				cout << "-- Table does not exist." << endl;
-				
+				cout << "-- Table not located in this database." << endl;
 			}
 		}
 
+		// Alter Table handler that adds columns to table given
 		else if(line.find("ALTER TABLE") != -1)
 		{
 			int i;
@@ -178,7 +181,36 @@ int main(int argc, char const *argv[])
 
 
 
-		errorFlag == 0;
+		errorFlag = 0;
 	}
+
+	cout << "-- All done!" << endl;
 	return 0;
+}
+
+// Function to get rid of those pesky carriage returns
+void sanitize(string& input)
+{
+	string myString;
+
+	if (input.find('\r') == string::npos)
+	{
+		return;
+	}
+	else
+	{
+		for(int i = 0; i < input.size(); i++)
+		{
+			if (input[i] == '\r')
+			{
+				continue;
+			}
+			else
+			{
+				myString.push_back(input[i]);
+			}
+		}
+		input = myString;
+		return;
+	}
 }
