@@ -11,6 +11,7 @@
 #include "table.cpp"
 #include <cstring>
 #include <cctype>
+#include <sstream>
 
 
 using namespace std;
@@ -18,9 +19,6 @@ using namespace std;
 void sanitize(string& input);
 void caseChange(string& input);
 string toUPPER(string input);
-
-string keywords[] = {"CREATE", "DATABASE", "USE", "TABLE", "INSERT", "INTO", "VALUES", "SELECT",
-					"FROM", "UPDATE", "SET", "WHERE", "DELETE", "DROP", "ALTER"};
 
 int main(int argc, char const *argv[])
 {
@@ -32,29 +30,33 @@ int main(int argc, char const *argv[])
 	string attrs = "";
 	vector<Table> tableVect;
 	int errorFlag = 0;
+	string appendCommand = "";
 
 	while(line != ".EXIT")
 	{
 		cout << "> ";
 		getline(cin, line);
 
+		while(line.find(';') == -1 && line.find('.') != 0 && line != "")
+		{
+			cout << "..";
+			getline(cin, appendCommand);
+			if (appendCommand != "")
+			{
+				line += (" " + appendCommand);
+			}
+			
+		}
+
 		// get rid of \r's
 		sanitize(line);
 
 		// get rid of case issues
 		caseChange(line);
-		cout << "Line = " << line << endl;
 
 		if(line.find("--") != -1)
 		{
 			continue;
-		}
-
-		// check if the command was given properly
-		if(line.find(';') == -1 && line.find('.') != 0 && line != "")
-		{
-
-			cout << "Must end command with ';'." << endl;
 		}
 
 		// create database handler that creates a folder with correct name
@@ -238,70 +240,54 @@ void sanitize(string& input)
 	}
 }
 
-void caseChange(string& input)
+void caseChange(string& inputString)
 {
-	char* testSTR = const_cast<char*>(input.c_str());
-	vector<string> outputSTRs;
-	char* pch;
-	string check;
-	string output = "";
-	int flag = 0;
+	string testString = inputString;
+	string dictionary[] = {"FROM","CREATE","UPDATE","ALTER","DROP","INSERT","INTO","SET","WHERE","SELECT","VALUES","USE","DATABASE","TABLE","DELETE",".EXIT"};
+	string wordCheck;
+	string sanitizedString = "";
 
-	cout << "TEST 1" << endl;
+	vector<string> tokens;
+	string token;
+	istringstream tokenStream(testString);
 
-	pch = strtok(testSTR," ");
- 	while (pch != NULL)
-  	{
-   		outputSTRs.push_back(string(pch));
-    	pch = strtok(NULL, " ");
-  	}
-
-  	for(int i = 0; i < outputSTRs.size(); i++)
-  	{
-  		cout << "TEST 2" << endl;
-  		check = toUPPER(outputSTRs[i]);
-
-  		for(int j = 0; j < 15; j++)
-  		{	
-  			if(check == ".EXIT")
-  			{
-  				output += check;
-  				flag = 1;
-  				break;
-  			}
-	  		else if(check == keywords[j])
-	  		{
-	  			output += (keywords[j] + " ");
-	  			flag = 1;
-	  			break;
-	  		}
-
-	  	}
-
-	  	if(flag == 0 && outputSTRs[i].find(';') == -1)
-	  	{
-	  		output += (outputSTRs[i] + " ");
-	  	}
-	  	else if(flag == 0)
-	  	{
-	  		output += outputSTRs[i];
-	  	}
-
-	  	flag = 0;
-  	}	
-
-  input = output;
-
-}
-
-string toUPPER(string input)
-{
-	string output = "";
-
-	for(int i; i < input.length(); i++)
+	while (getline(tokenStream, token, ' '))
 	{
-		output += toupper(input[i]);
+		tokens.push_back(token);
+		
 	}
 
-	return output;
+	size_t dictionaryElements = sizeof( dictionary ) / sizeof( dictionary[0] );
+	int dictionarySize = static_cast<int>(dictionaryElements);
+
+	for(int i=0; i<tokens.size();i++)
+	{
+		wordCheck = tokens[i];
+		for(int iterate =0; iterate < wordCheck.size();iterate++)
+		{
+			wordCheck[iterate]=toupper(wordCheck[iterate]);
+		}
+
+		for(int j=0; j< dictionarySize;j++)
+		{
+			
+			if(wordCheck == dictionary[j])
+			{
+			
+				tokens[i]=wordCheck;
+				break;
+			}
+		}
+			//Now generate your real string. 
+			if(i == (tokens.size()-1))
+			{
+				sanitizedString = sanitizedString + tokens[i];
+			}
+			else
+			{
+				sanitizedString = sanitizedString + tokens[i] + ' ';
+			}
+	}
+
+	inputString = sanitizedString;
 }
