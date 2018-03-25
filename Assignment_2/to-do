@@ -1,3 +1,6 @@
 * update tuples
 * delete tuples
 * query tuples where
+
+
+g++ -std=c++11 start.cpp
