@@ -41,18 +41,18 @@ string Table::getDBA()
 // print table function that outputs attributes in a prettier format (pipe seperated)
 void Table::printTable()
 {
-	string line  = Tparameters;
-	int pos = line.find(',');
-	while(pos > 0)
+	for (int i = 0; i < dataVect.size(); i++)
 	{
-		line.replace(pos, 2, " | ");
-		pos = line.find(',');
+		cout << dataVect[i][0] << "   " << dataVect[i][1] << "   " << dataVect[i][2] << endl;
 	}
-	cout << line << endl;
-
 }
 
 void Table::setAttrs(string a)
 {
 	Tparameters = a;
+}
+
+void Table::insert2Vector(vector<string> input)
+{
+	dataVect.push_back(input);
 }

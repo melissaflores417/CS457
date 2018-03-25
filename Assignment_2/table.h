@@ -20,11 +20,12 @@ public:
 	string getDBA();
 	void setAttrs(string a);
 	void printTable();
+	void insert2Vector(vector<string> input);
 
 
 private:
 	string Tname;
 	string Tparameters;
 	string DBA;
-	
+	vector <vector<string> > dataVect;
 };

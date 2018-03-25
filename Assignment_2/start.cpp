@@ -12,6 +12,7 @@
 #include <cstring>
 #include <cctype>
 #include <sstream>
+#include <algorithm>
 
 
 using namespace std;
@@ -19,6 +20,7 @@ using namespace std;
 void sanitize(string& input);
 void caseChange(string& input);
 string toUPPER(string input);
+void loadInputVec(string input, vector<string>& loadVec);
 
 int main(int argc, char const *argv[])
 {
@@ -180,7 +182,7 @@ int main(int argc, char const *argv[])
 			name = line.substr(12, line.find("ADD") - 13);
 			string addedParameters = line.substr(line.find("ADD") + 4, line.length() - (line.find("ADD") + 5));
 			
-			for (i = 0; i < tableVect.size(); ++i)
+			for (i = 0; i < tableVect.size(); i++)
 			{
 				if (name == tableVect[i].getName() && db == tableVect[i].getDBA())
 				{
@@ -198,8 +200,40 @@ int main(int argc, char const *argv[])
 		}
 		else if(line.find("INSERT INTO") != -1)
 		{
+			int i;
 			name = line.substr(12, line.find("values") - 13);
-			cout << name << endl;
+
+			for(i = 0; i < tableVect.size(); i++)
+			{
+				if(tableVect[i].getName() == name && tableVect[i].getDBA() == db)
+				{
+					break;
+				}
+			}
+
+			if(i != tableVect.size())
+			{
+				vector<string> test;
+
+				int pos = line.find("(");
+				attrs = line.substr(pos + 1, line.length() - 3 - pos);
+
+				// strip spaces
+				attrs.erase(remove_if(attrs.begin(), attrs.end(), ::isspace), attrs.end());
+
+
+				loadInputVec(attrs, test);
+				tableVect[i].insert2Vector(test);
+
+
+				// TEST ONLY
+				tableVect[i].printTable();
+			}
+			else
+			{
+				cout << "-- Invalid table" << endl;
+			}
+			
 
 		}
 
@@ -211,6 +245,24 @@ int main(int argc, char const *argv[])
 
 	cout << "-- All done!" << endl;
 	return 0;
+}
+
+void loadInputVec(string input, vector<string>& loadVec)
+{
+	int Oldpos = input.find(',');
+	loadVec.push_back(input.substr(0, Oldpos));
+	int Newpos = input.find(',', Oldpos + 1);
+	while(Newpos > 0)
+	{
+		//push onto loadVec
+		loadVec.push_back(input.substr(Oldpos + 1, Newpos - Oldpos - 1));
+
+		// look for next ','
+		Oldpos = Newpos;
+		Newpos = input.find(',', Oldpos + 1);
+	}
+
+	loadVec.push_back(input.substr(Oldpos + 1, input.length() - Oldpos));
 }
 
 // Function to get rid of those pesky carriage returns
