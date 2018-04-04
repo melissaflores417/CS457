@@ -1,6 +1,6 @@
 // .h file
 // James Schnebly
-// 
+// 3/27/18
 // CS457 PA2
 
 #include <iostream>
@@ -20,7 +20,12 @@ public:
 	string getDBA();
 	void setAttrs(string a);
 	void printTable();
+	void queryTable(int whereIndex, string whereVal, vector<int> indices);
 	void insert2Vector(vector<string> input);
+	int getIndex(string colName);
+	int update(int whereIndex, int setIndex, string whereVal, string setVal);
+	int deleteT(int whereIndex, string whereVal, char op);
+	void fileWrite();
 
 
 private:
