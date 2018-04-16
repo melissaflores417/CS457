@@ -79,7 +79,7 @@ void sanitize(string& input)
 void caseChange(string& inputString)
 {
 	string testString = inputString;
-	string dictionary[] = {"FROM","CREATE","UPDATE","ALTER","DROP","INSERT","INTO","SET","WHERE","SELECT","VALUES","USE","DATABASE","TABLE","DELETE",".EXIT", "ON", "LEFT", "OUTER", "JOIN"};
+	string dictionary[] = {"FROM","CREATE","UPDATE","ALTER","DROP","INSERT","INTO","SET","WHERE","SELECT","VALUES","USE","DATABASE","TABLE","DELETE",".EXIT", "ON", "LEFT", "OUTER", "JOIN", "INNER"};
 	string wordCheck;
 	string sanitizedString = "";
 
@@ -271,7 +271,7 @@ void run()
 		// left outer join handler
 		else if(line.find("LEFT OUTER JOIN") != -1)
 		{
-			cout << "left outer join" << endl;
+			//cout << "left outer join" << endl;
 		}
 
 		// Select (natural inner join) Query handler that returns the empty table
@@ -279,7 +279,7 @@ void run()
 		{
 			if(line.find("WHERE") != -1)
 			{
-				cout << "natural join" << endl;
+				//cout << "natural join" << endl;
 				name = line.substr(line.find("FROM") + 5, line.find(',') - line.find("FROM") - 7);
 				string name2 = line.substr(line.find(',') + 2, line.find("WHERE") - line.find(',') - 5);
 
@@ -288,13 +288,14 @@ void run()
 			
 				// indices for the two tables in the tableVect
 				int Tindex1, Tindex2;
+				int attrIndex, attr2Index;
 
 
 				for (Tindex1 = 0; Tindex1 < tableVect.size(); Tindex1++)
 				{
 					if(name == tableVect[Tindex1].getName() && db == tableVect[Tindex1].getDBA())
 					{
-				 		int attrIndex = tableVect[Tindex1].getIndex(attr);
+				 		attrIndex = tableVect[Tindex1].getIndex(attr);
 				 		break;
 				 	}
 				 }
@@ -303,7 +304,7 @@ void run()
 				{
 					if(name2 == tableVect[Tindex2].getName() && db == tableVect[Tindex2].getDBA())
 					{
-			 			int attr2Index =  tableVect[Tindex2].getIndex(attr2);
+			 			attr2Index =  tableVect[Tindex2].getIndex(attr2);
 			 			break;
 				 	}
 				}
@@ -314,42 +315,138 @@ void run()
 				// that returns the value for that row + col
 				// call in a nested for loop and compare each iteration of the 
 				// outer for loop
-//START HERE     /////////////////////////////////////////////////////////////////////////////
-				for(int i = 0; ;i++)
-				{
-					for(int j = 0; ;j++)
-					{
+				string temp1, temp2;
+				int k = 0;
 
+				string line3  = tableVect[Tindex1].getAttrs();
+				int pos = line3.find(',');
+				while(pos > 0)
+				{
+					line3.replace(pos, 2, " | ");
+					pos = line3.find(',');
+				}
+
+				string line4  = tableVect[Tindex2].getAttrs();
+				int pos2 = line4.find(',');
+				while(pos2 > 0)
+				{
+					line4.replace(pos2, 2, " | ");
+					pos2 = line4.find(',');
+				}
+
+				cout << line3 << " | " << line4 << endl;
+
+				for(int i = 0; i < 3 ;i++)
+				{
+					temp1 = tableVect[Tindex1].getValue(i, attrIndex);
+
+					for(int j = 0; j < 3 ;j++)
+					{
+						temp2 = tableVect[Tindex2].getValue(j, attr2Index);
+
+						if(temp1 == temp2)
+						{
+							for( k = 0; k < 2; k++)
+							{
+								cout << tableVect[Tindex1].getValue(i,k) << '|';
+							}
+
+							for(k = 0; k < 2; k++)
+							{
+								cout << tableVect[Tindex2].getValue(j,k) << '|';
+							}
+
+							cout << endl;
+						}
 					}
 				}
 
 			}
+
 			else if(line.find("ON") != -1)
 			{
-				cout << "inner join" << endl;
+				// cout << "inner join" << endl;
+				name = line.substr(line.find("FROM") + 5, line.find("INNER") - line.find("FROM") - 8);
+				string name2 = line.substr(line.find("JOIN") + 5, line.find("ON") - line.find("JOIN") - 8);
+
+				string attr = line.substr(line.find('.') + 1, line.find('=') - line.find('.') - 2);
+				string attr2 = line.substr(line.find_last_of('.') + 1, line.find(';') - line.find('=')- 4);
+
+				int Tindex1, Tindex2;
+				int attrIndex, attr2Index;
+
+
+				for (Tindex1 = 0; Tindex1 < tableVect.size(); Tindex1++)
+				{
+					if(name == tableVect[Tindex1].getName() && db == tableVect[Tindex1].getDBA())
+					{
+				 		attrIndex = tableVect[Tindex1].getIndex(attr);
+				 		break;
+				 	}
+				 }
+
+				for (Tindex2 = 0; Tindex2 < tableVect.size(); Tindex2++)
+				{
+					if(name2 == tableVect[Tindex2].getName() && db == tableVect[Tindex2].getDBA())
+					{
+			 			attr2Index =  tableVect[Tindex2].getIndex(attr2);
+			 			break;
+				 	}
+				}
+
+				// compare values in index's for each table
+
+				// need to create Table::getValue(int row, int col)
+				// that returns the value for that row + col
+				// call in a nested for loop and compare each iteration of the 
+				// outer for loop
+				string temp1, temp2;
+				int k = 0;
+
+				string line3  = tableVect[Tindex1].getAttrs();
+				int pos = line3.find(',');
+				while(pos > 0)
+				{
+					line3.replace(pos, 2, " | ");
+					pos = line3.find(',');
+				}
+
+				string line4  = tableVect[Tindex2].getAttrs();
+				int pos2 = line4.find(',');
+				while(pos2 > 0)
+				{
+					line4.replace(pos2, 2, " | ");
+					pos2 = line4.find(',');
+				}
+
+				cout << line3 << " | " << line4 << endl;
+
+				for(int i = 0; i < 3 ;i++)
+				{
+					temp1 = tableVect[Tindex1].getValue(i, attrIndex);
+
+					for(int j = 0; j < 3 ;j++)
+					{
+						temp2 = tableVect[Tindex2].getValue(j, attr2Index);
+
+						if(temp1 == temp2)
+						{
+							for( k = 0; k < 2; k++)
+							{
+								cout << tableVect[Tindex1].getValue(i,k) << '|';
+							}
+
+							for(k = 0; k < 2; k++)
+							{
+								cout << tableVect[Tindex2].getValue(j,k) << '|';
+							}
+
+							cout << endl;
+						}
+					}
+				}
 			}
-			
-
-
-			// OLD CODE
-			// --------
-			// caseChange(name);
-			// int i;
-
-			// for (i = 0; i < tableVect.size(); i++)
-			// {
-			// 	if(name == tableVect[i].getName() && db == tableVect[i].getDBA())
-			// 	{
-			// 		tableVect[i].printTable();
-			// 		break;
-			// 	}
-			// }
-			// if(i == tableVect.size())
-			// {
-			// 	cout << "-- Table not located in this database." << endl;
-			// }
 		}
-
 		// Select Query handler that returns the empty table
 		else if (line.find("SELECT *") != -1)
 		{
