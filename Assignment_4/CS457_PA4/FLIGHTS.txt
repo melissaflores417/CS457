@@ -1,0 +1,4 @@
+CREATE TABLE Flights(seat int, status int);
+INSERT INTO FLIGHTS values(22,0);
+INSERT INTO FLIGHTS values(23,1);
+UPDATE FLIGHTS SET status = 1 WHERE seat = 22;

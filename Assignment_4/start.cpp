@@ -22,6 +22,8 @@ void caseChange(string& input);
 string toUPPER(string input);
 void loadInputVec(string input, vector<string>& loadVec);
 void run();
+void loadTable(vector<Table> &tableVect);
+void loadUpdate(vector<Table> &tableVect);
 
 int main(int argc, char const *argv[])
 {
@@ -142,14 +144,12 @@ void run()
 	string appendCommand = "";
 	bool transactFlag = 0;
 	bool errorFlag2 = 0;
+	string Lname = "";
+	string Lline = "";
+	bool commitFlag = 0;
 
 	while(line != ".EXIT")
 	{
-
-		/* IDEA:
-			make a counter that goes to 4 and at the beginning of while loop if counter < 4 then 
-			line = getline from table file else getline from cin --> line .... inc counter at the end of every while loop*/
-
 		// manual testing only
 		//cout << "> ";
 		getline(cin, line);
@@ -501,10 +501,6 @@ void run()
 
 				// compare values in index's for each table
 
-				// need to create Table::getValue(int row, int col)
-				// that returns the value for that row + col
-				// call in a nested for loop and compare each iteration of the 
-				// outer for loop
 				string temp1, temp2;
 				int k = 0;
 
@@ -563,13 +559,15 @@ void run()
 			{
 				if(name == tableVect[i].getName() && db == tableVect[i].getDBA())
 				{
+					loadUpdate(tableVect);
 					tableVect[i].printTable();
 					break;
 				}
 			}
 			if(i == tableVect.size())
 			{
-				cout << "-- Table not located in this database." << endl;
+				loadTable(tableVect);
+				tableVect[i].printTable();
 			}
 		}
 
@@ -691,15 +689,13 @@ void run()
 						fout.open("inTrans.txt");
 						fout << name << endl;
 						fout.close();
+						Lname = name;
+						Lline = line;
 					}
 
 				}
 
-				ofstream fout2;
-				fout2.clear();
-				fout2.open(db + "/" + name + ".txt", std::ios_base::app);
-				fout2 << line << endl;
-				fout2.close();
+
 
 				cout << "--" << tableVect[i].update(whereIndex, setIndex, whereVal, setVal) << " record(s) modified." << endl;
 
@@ -823,15 +819,105 @@ void run()
 			{
 				cout << "Transaction commmited" << endl;
 				transactFlag = 0;
+
+				ofstream fout2;
+				fout2.clear();
+				fout2.open(db + "/" + Lname + ".txt", std::ios_base::app);
+				fout2 << Lline << endl;
+				fout2.close();
+
+				fout2.open("commit.txt");
+				fout2 << 1 << endl;
+				fout2.close();
 			}
 			
 		}
 
 		errorFlag = 0;
 	}
-	// for(int i = 0; i < tableVect.size(); i++)
-	// {
-	// 	tableVect[i].fileWrite();
-	// }
 	cout << "-- All done!" << endl;
 }
+
+void loadTable(vector<Table> &tableVect)
+{	if(tableVect.size() == 0)
+	{
+		ifstream fin0;
+		string line;
+		string name;
+		string attrs;
+		string db = "CS457_PA4";
+
+		fin0.clear();
+		fin0.open("CS457_PA4/FLIGHTS.txt");
+		getline(fin0, line);
+		
+		name = line.substr(13, line.find("(") - 13);
+		caseChange(name);
+		attrs = line.substr(line.find("(") + 1, line.length() - 3 - line.find("("));
+		Table* pushT = new Table(name, attrs, db);
+		tableVect.push_back(*pushT);
+
+		getline(fin0, line);;
+		vector<string> test;
+
+		int pos = line.find("(");
+		attrs = line.substr(pos + 1, line.length() - 3 - pos);
+
+		// strip spaces
+		attrs.erase(remove_if(attrs.begin(), attrs.end(), ::isspace), attrs.end());
+
+		loadInputVec(attrs, test);
+		tableVect[0].insert2Vector(test);
+
+		vector<string> test2;
+		getline(fin0, line);
+		fin0.close();
+
+		pos = line.find("(");
+		attrs = line.substr(pos + 1, line.length() - 3 - pos);
+
+		// strip spaces
+		attrs.erase(remove_if(attrs.begin(), attrs.end(), ::isspace), attrs.end());
+
+		loadInputVec(attrs, test2);
+		tableVect[0].insert2Vector(test2);
+	}
+}
+void loadUpdate(vector<Table> &tableVect)
+{
+	ifstream fin00;
+	char commitFlag = '0';
+	fin00.clear();
+	fin00.open("commit.txt");
+	fin00 >> commitFlag;
+
+	if(commitFlag == '1')
+	{
+		ifstream fin0;
+		string line;
+		string db = "CS457_PA4";
+		fin0.clear();
+		fin0.open("CS457_PA4/FLIGHTS.txt");
+		getline(fin0, line);
+		getline(fin0, line);
+		getline(fin0, line);
+		getline(fin0, line);
+
+		string whereKey = line.substr(line.find("WHERE") + 6, line.find_last_of("=") - 6 - line.find("WHERE"));
+		string whereVal = line.substr(line.find_last_of("=") + 2, line.find(";") - 2 - line.find_last_of("="));
+				
+		string setKey = line.substr(line.find("SET") + 4, line.find("=") - 5 - line.find("SET"));
+		string setVal = line.substr(line.find("=") + 2, line.find("WHERE") - 3 - line.find("="));
+
+		int whereIndex = tableVect[0].getIndex(whereKey);
+		int setIndex = tableVect[0].getIndex(setKey);
+
+		tableVect[0].update(whereIndex, setIndex, whereVal, setVal);
+	}
+
+}
+	
+	
+
+	
+	
